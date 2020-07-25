@@ -50,4 +50,23 @@ print(ggplot(nj, aes(x=date_p))+
       labs(y="Cases/Day")
       )
 
+# Graph Morris County Stats.  Cases / day (with rolling average) and Deaths / day
+print(ggplot(morris, aes(x=date_p))+
+      geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
+	  geom_line(stat="identity",aes(y=mean7_delta_cases), color="red", size=2)+
+      labs(title="Morris County Cases / Day")+
+      labs(x="Date")+
+      labs(caption="Cases/Day")+
+      labs(y="Cases/Day")
+      )
+
+print(ggplot(morris, aes(x=date_p))+
+      geom_bar(stat="identity", aes(y=delta_deaths), color="blue", fill="white")+
+	  geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
+      labs(title="Morris County Deaths / Day")+
+      labs(x="Date")+
+      labs(caption="Cases/Day")+
+      labs(y="Cases/Day")
+      )
+ 
 dev.off()
