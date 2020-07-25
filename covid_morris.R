@@ -37,7 +37,7 @@ print(ggplot(nj, aes(x=date_p))+
 	  geom_line(stat="identity",aes(y=mean7_delta_cases), color="red", size=2)+
       labs(title="NJ Cases / Day")+
       labs(x="Date")+
-      labs(caption="Cases/Day")+
+      labs(caption="Data from NY Times")+
       labs(y="Cases/Day")
       )
 
@@ -46,8 +46,8 @@ print(ggplot(nj, aes(x=date_p))+
 	  geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
       labs(title="NJ Deaths / Day")+
       labs(x="Date")+
-      labs(caption="Cases/Day")+
-      labs(y="Cases/Day")
+      labs(caption="Data from NY Times")+
+      labs(y="Deaths/Day")
       )
 
 # Graph Morris County Stats.  Cases / day (with rolling average) and Deaths / day
@@ -56,7 +56,7 @@ print(ggplot(morris, aes(x=date_p))+
 	  geom_line(stat="identity",aes(y=mean7_delta_cases), color="red", size=2)+
       labs(title="Morris County Cases / Day")+
       labs(x="Date")+
-      labs(caption="Cases/Day")+
+      labs(caption="Data from NY Times")+
       labs(y="Cases/Day")
       )
 
@@ -65,8 +65,8 @@ print(ggplot(morris, aes(x=date_p))+
 	  geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
       labs(title="Morris County Deaths / Day")+
       labs(x="Date")+
-      labs(caption="Cases/Day")+
-      labs(y="Cases/Day")
+      labs(caption="Data from NY Times")+
+      labs(y="Deaths/Day")
       )
  
 dev.off()
