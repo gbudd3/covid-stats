@@ -1,8 +1,7 @@
 all: update output output/covid_nj.pdf
 
 update: covid-19-data
-	cd covid-19-data
-	git pull
+	( cd covid-19-data; git pull -v )
 
 output:
 	mkdir output
