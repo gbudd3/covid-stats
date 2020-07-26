@@ -11,10 +11,13 @@ graph_covid <- function(data_frame, title) {
 	data_frame <- data_frame %>% mutate(delta_deaths = deaths - lag(deaths))
 	data_frame$mean7_delta_cases <- floor(rollmeanr(data_frame$delta_cases, 7, fill=NA))
 	data_frame$mean7_delta_deaths <- floor(rollmeanr(data_frame$delta_deaths, 7, fill=NA))
+
+	n <- length(data_frame$date_p)
  
 	print(ggplot(data_frame, aes(x=date_p))+
 		geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_cases), color="red", size=2)+
+		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%.0f",data_frame$mean7_delta_cases[n]))+
 		labs(title=paste(title, "Cases / Day"))+
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
@@ -24,6 +27,7 @@ graph_covid <- function(data_frame, title) {
 	print(ggplot(data_frame, aes(x=date_p))+
 		geom_bar(stat="identity", aes(y=delta_deaths), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
+		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_deaths[n], size=5, label=sprintf("%.0f",data_frame$mean7_delta_deaths[n]))+
 		labs(title=paste(title, "Deaths / Day"))+
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
@@ -47,5 +51,6 @@ graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
 graph_covid(states %>% filter(state == "Texas"), "Texas")
 graph_covid(states %>% filter(state == "Florida"), "Florida")
+graph_covid(states %>% filter(state == "Arizona"), "Arizona")
 
 dev.off()
