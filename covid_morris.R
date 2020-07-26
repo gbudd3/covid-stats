@@ -34,17 +34,8 @@ graph_covid <- function(data_frame, title) {
 # Setup states and specifically NJ
 states <- read.csv("covid-19-data/us-states.csv")
 
-nj <- states %>% filter(state == "New Jersey")
-tx <- states %>% filter(state == "Texas")
-fl <- states %>% filter(state == "Florida")
-
-
 # Setup counties, specifically Morris county NJ
 counties <- read.csv("covid-19-data/us-counties.csv") 
-morris <- counties %>%
-	filter(county == "Morris") %>%
-	filter(state == "New Jersey")
-
 
 pdf("output/covid_nj.pdf", width = 11, height=8.5)
 
@@ -52,9 +43,9 @@ pdf("output/covid_nj.pdf", width = 11, height=8.5)
 theme_update(plot.title = element_text(hjust = 0.5))
 theme_update(plot.subtitle = element_text(hjust = 0.5))
 
-graph_covid(nj, "New Jersey")
-graph_covid(morris, "Morris County")
-graph_covid(fl, "Florida")
-graph_covid(tx, "Texas")
+graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
+graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
+graph_covid(states %>% filter(state == "Texas"), "Texas")
+graph_covid(states %>% filter(state == "Florida"), "Florida")
 
 dev.off()
