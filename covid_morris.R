@@ -4,7 +4,14 @@ library(zoo)
 
 graph_covid <- function(data_frame, title) {
 # Graph Stats.  Cases / day (with rolling average) and Deaths / day
-
+	data_frame$date_p <- as.POSIXct(data_frame$date)
+	data_frame$wday <- weekdays(data_frame$date_p)
+	data_frame <- data_frame %>% arrange(date_p)
+	data_frame <- data_frame %>% mutate(delta_cases = cases - lag(cases))
+	data_frame <- data_frame %>% mutate(delta_deaths = deaths - lag(deaths))
+	data_frame$mean7_delta_cases <- floor(rollmeanr(data_frame$delta_cases, 7, fill=NA))
+	data_frame$mean7_delta_deaths <- floor(rollmeanr(data_frame$delta_deaths, 7, fill=NA))
+ 
 	print(ggplot(data_frame, aes(x=date_p))+
 		geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_cases), color="red", size=2)+
@@ -26,28 +33,18 @@ graph_covid <- function(data_frame, title) {
 
 # Setup states and specifically NJ
 states <- read.csv("covid-19-data/us-states.csv")
-states$date_p <- as.POSIXct(states$date)
 
-nj <- states %>% filter(state == "New Jersey") %>% arrange(date_p)
-nj <- nj %>% mutate(delta_cases = cases - lag(cases))
-nj <- nj %>% mutate(delta_deaths = deaths - lag(deaths))
-nj$mean7_delta_cases <- floor(rollmeanr(nj$delta_cases, 7, fill=NA))
-nj$mean7_delta_deaths <- floor(rollmeanr(nj$delta_deaths, 7, fill=NA))
-nj$wday <- weekdays(nj$date_p)
+nj <- states %>% filter(state == "New Jersey")
+tx <- states %>% filter(state == "Texas")
+fl <- states %>% filter(state == "Florida")
+
 
 # Setup counties, specifically Morris county NJ
 counties <- read.csv("covid-19-data/us-counties.csv") 
-counties$date_p <- as.POSIXct(counties$date)
 morris <- counties %>%
 	filter(county == "Morris") %>%
-	filter(state == "New Jersey") %>%
-	arrange(date_p)
+	filter(state == "New Jersey")
 
-morris <- morris %>% mutate(delta_cases = cases - lag(cases))
-morris <- morris %>% mutate(delta_deaths = deaths - lag(deaths))
-morris$mean7_delta_cases <- floor(rollmeanr(morris$delta_cases, 7, fill=NA))
-morris$mean7_delta_deaths <- floor(rollmeanr(morris$delta_deaths, 7, fill=NA))
-morris$wday <- weekdays(morris$date_p)
 
 pdf("output/covid_nj.pdf", width = 11, height=8.5)
 
@@ -57,5 +54,7 @@ theme_update(plot.subtitle = element_text(hjust = 0.5))
 
 graph_covid(nj, "New Jersey")
 graph_covid(morris, "Morris County")
+graph_covid(fl, "Florida")
+graph_covid(tx, "Texas")
 
 dev.off()
