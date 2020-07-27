@@ -16,7 +16,7 @@ graph_covid <- function(data_frame, title) {
  
 	print(ggplot(data_frame, aes(x=date_p))+
 		geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
-		geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="red", size=2)+
+		geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
 		scale_linetype("")+
 		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%.0f",data_frame$mean7_delta_cases[n]))+
 		labs(title=paste(title, "Cases / Day"))+
@@ -73,11 +73,17 @@ theme_update(plot.title = element_text(hjust = 0.5))
 theme_update(plot.subtitle = element_text(hjust = 0.5))
 theme_update(legend.position = c(0.1, 0.9))
 
+# NJ Graphs
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
-graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
 graph_counties_for_state(counties, "New Jersey")
 
-graph_covid(states %>% filter(state == "Texas"), "Texas")
-graph_covid(states %>% filter(state == "Florida"), "Florida")
+graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
 
+dev.off()
+
+# Other states for comparison
+pdf("output/covid_all_states.pdf", width = 11, height=8.5)
+for (st in levels(states$state)) {
+	graph_covid(states %>% filter(state == st), st)
+}
 dev.off()
