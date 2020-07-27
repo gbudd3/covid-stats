@@ -37,6 +37,29 @@ graph_covid <- function(data_frame, title) {
 		)
 }
 
+graph_counties_for_state <- function(data_frame, in_state) {
+	data_frame$date_p <- as.POSIXct(data_frame$date)
+	state <- data_frame %>%
+		filter(state == in_state) %>%
+		filter(county != "Unknown") %>%
+		arrange(county,date_p) %>%
+		group_by(county) %>%
+		mutate(delta_cases = cases - lag(cases)) %>%
+		mutate(delta_deaths = deaths - lag(deaths)) %>%
+		mutate(mean7_delta_cases = floor(rollmeanr(delta_cases, 7, fill=NA))) %>%
+		mutate(mean7_delta_deaths = floor(rollmeanr(delta_deaths, 7, fill=NA)))
+
+	print(ggplot(state, aes(x=date_p))+
+			geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
+			facet_wrap(~county)+
+			scale_linetype("")+
+			labs(title=paste(in_state, "Cases / Day by County"))+
+			labs(x="Date")+
+			labs(caption="Data from NY Times")+
+			labs(y="Cases/Day")
+	)             
+}
+
 # Setup states and specifically NJ
 states <- read.csv("covid-19-data/us-states.csv")
 
@@ -52,8 +75,9 @@ theme_update(legend.position = c(0.1, 0.9))
 
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
+graph_counties_for_state(counties, "New Jersey")
+
 graph_covid(states %>% filter(state == "Texas"), "Texas")
 graph_covid(states %>% filter(state == "Florida"), "Florida")
-graph_covid(states %>% filter(state == "Arizona"), "Arizona")
 
 dev.off()
