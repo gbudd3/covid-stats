@@ -8,9 +8,13 @@ graph_covid <- function(data_frame, title) {
 	data_frame$wday <- weekdays(data_frame$date_p)
 	data_frame <- data_frame %>% arrange(date_p)
 	data_frame <- data_frame %>% mutate(delta_cases = cases - lag(cases))
+	data_frame <- data_frame %>% mutate(delta2_cases = delta_cases - lag(delta_cases))
 	data_frame <- data_frame %>% mutate(delta_deaths = deaths - lag(deaths))
+	data_frame <- data_frame %>% mutate(delta2_deaths = delta_deaths - lag(delta_deaths))
 	data_frame$mean7_delta_cases <- floor(rollmeanr(data_frame$delta_cases, 7, fill=NA))
 	data_frame$mean7_delta_deaths <- floor(rollmeanr(data_frame$delta_deaths, 7, fill=NA))
+	data_frame$mean7_delta2_cases <- floor(rollmeanr(data_frame$delta2_cases, 7, fill=NA))
+	data_frame$mean7_delta2_deaths <- floor(rollmeanr(data_frame$delta2_deaths, 7, fill=NA))
 
 	n <- length(data_frame$date_p)
  
@@ -35,7 +39,8 @@ graph_covid <- function(data_frame, title) {
 		labs(caption="Data from NY Times")+
 		labs(y="Deaths/Day")
 		)
-}
+
+ }
 
 graph_counties_for_state <- function(data_frame, in_state) {
 	data_frame$date_p <- as.POSIXct(data_frame$date)
@@ -61,6 +66,9 @@ graph_counties_for_state <- function(data_frame, in_state) {
 }
 
 # Setup states and specifically NJ
+us <- read.csv("covid-19-data/us.csv")
+
+# Setup states and specifically NJ
 states <- read.csv("covid-19-data/us-states.csv")
 
 # Setup counties, specifically Morris county NJ
@@ -82,7 +90,9 @@ graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Mo
 dev.off()
 
 # Other states for comparison
+
 pdf("output/covid_all_states.pdf", width = 11, height=8.5)
+graph_covid(us, "United States")
 for (st in levels(states$state)) {
 	graph_covid(states %>% filter(state == st), st)
 }
