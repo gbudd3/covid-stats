@@ -1,8 +1,9 @@
 library(tidyverse)
+library(lubridate)
 library(ggplot2)
 library(zoo)
 
-graph_covid <- function(data_frame, title) {
+graph_covid <- function(data_frame, title, num_days=0) {
 # Graph Stats.  Cases / day (with rolling average) and Deaths / day
 	data_frame$date_p <- as.POSIXct(data_frame$date)
 	data_frame$wday <- weekdays(data_frame$date_p)
@@ -16,9 +17,13 @@ graph_covid <- function(data_frame, title) {
 	data_frame$mean7_delta2_cases <- floor(rollmeanr(data_frame$delta2_cases, 7, fill=NA))
 	data_frame$mean7_delta2_deaths <- floor(rollmeanr(data_frame$delta2_deaths, 7, fill=NA))
 
+	if (num_days > 0) {
+		data_frame <- data_frame %>% filter(date_p >= today()-days(num_days))
+	}
+
 	n <- length(data_frame$date_p)
  
-	print(ggplot(data_frame, aes(x=date_p))+
+	g <- ggplot(data_frame, aes(x=date_p))+
 		geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
 		scale_linetype("")+
@@ -27,9 +32,11 @@ graph_covid <- function(data_frame, title) {
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
 		labs(y="Cases/Day")
-		)
 
-	print(ggplot(data_frame, aes(x=date_p))+
+	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
+	print(g)
+
+	g <- ggplot(data_frame, aes(x=date_p))+
 		geom_bar(stat="identity", aes(y=delta_deaths), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_deaths, lty="7 day average"), color="red", size=2)+
 		scale_linetype("")+
@@ -38,7 +45,9 @@ graph_covid <- function(data_frame, title) {
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
 		labs(y="Deaths/Day")
-		)
+
+	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
+	print(g)
 
  }
 
@@ -105,12 +114,14 @@ theme_update(legend.position = c(0.1, 0.9))
 
 # NJ Graphs
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
+graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 30)
 graph_counties_for_state(counties, "New Jersey")
 
 graph_states(states %>% filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
 			 "Cases / Day for Neighboring States plus NJ")
 
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
+graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 30)
 
 dev.off()
 
