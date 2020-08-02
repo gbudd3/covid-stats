@@ -95,7 +95,32 @@ graph_states <- function(data_frame, in_title) {
 			labs(y="Cases/Day")
 	)             
 }
- 
+
+graph_states_100k <- function(data_frame, in_title) {
+	data_frame$date_p <- as.POSIXct(data_frame$date)
+	n <- 100000
+	l <- length(data_frame$date_p)
+
+	state <- data_frame %>%
+		arrange(state,date_p) %>%
+		group_by(state) %>%
+		mutate(delta_cases = (cases - lag(cases)) / (pop/n)) %>%
+		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
+		mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA))
+		
+	print(ggplot(state, aes(x=date_p))+
+			geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
+			geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
+	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_cases[n]))+
+			facet_wrap(~state)+
+			scale_linetype("")+
+			labs(title=in_title)+
+			labs(x="Date")+
+			labs(caption="Data from NY Times")+
+			labs(y="Cases/Day")
+	)             
+}
+  
 # Setup states and specifically NJ
 us <- read.csv("covid-19-data/us.csv")
 
@@ -106,7 +131,8 @@ state_population <- state_population %>%
 	select(NAME, STATE, POPESTIMATE2019) %>%
 	rename(name=NAME, state_fips=STATE, pop=POPESTIMATE2019)
 
-states <- states %>% inner_join(state_population, by = c("fips" = "state_fips"))
+states <- states %>% left_join(state_population, by = c("fips" = "state_fips"))
+states$date_p <- as.POSIXct(states$date)
 
 # Setup counties, specifically Morris county NJ
 counties <- read.csv("covid-19-data/us-counties.csv") 
@@ -116,7 +142,7 @@ county_population <- county_population %>%
 	rename(state_fips=STATE, county_fips=COUNTY, state_name=STNAME, county_name=CTYNAME, pop=POPESTIMATE2019)
 
 county_population$fips <- county_population$state_fips * 1000 + county_population$county_fips
-counties <- counties %>% inner_join(county_population, by = c("fips" = "fips"))
+counties <- counties %>% left_join(county_population, by = c("fips" = "fips"))
 
 
 
@@ -135,6 +161,12 @@ graph_counties_for_state(counties, "New Jersey")
 graph_states(states %>% filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
 			 "Cases / Day for Neighboring States plus NJ")
 
+graph_states_100k(states %>%
+				filter(date_p >= today()-days(30)) %>%
+				filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
+			 "Cases per 100K / Day for last 30 days for Neighboring States plus NJ")
+
+
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 30)
 
@@ -144,7 +176,11 @@ dev.off()
 
 pdf("output/covid_all_states.pdf", width = 11, height=8.5)
 graph_covid(us, "United States")
-for (st in levels(states$state)) {
+
+graph_states_100k(states %>%
+				filter(date_p >= today()-days(30))
+			 ,"Cases per 100K / Day for last 30 days for All States")
+ for (st in levels(states$state)) {
 	graph_covid(states %>% filter(state == st), st)
 }
 dev.off()
