@@ -106,12 +106,17 @@ state_population <- state_population %>%
 	select(NAME, STATE, POPESTIMATE2019) %>%
 	rename(name=NAME, state_fips=STATE, pop=POPESTIMATE2019)
 
+states <- states %>% inner_join(state_population, by = c("fips" = "state_fips"))
+
 # Setup counties, specifically Morris county NJ
 counties <- read.csv("covid-19-data/us-counties.csv") 
 county_population <- read.csv("co-est2019-alldata.csv")
 county_population <- county_population %>%
 	select(STATE,COUNTY,STNAME,CTYNAME,POPESTIMATE2019) %>%
 	rename(state_fips=STATE, county_fips=COUNTY, state_name=STNAME, county_name=CTYNAME, pop=POPESTIMATE2019)
+
+county_population$fips <- county_population$state_fips * 1000 + county_population$county_fips
+counties <- counties %>% inner_join(county_population, by = c("fips" = "fips"))
 
 
 
