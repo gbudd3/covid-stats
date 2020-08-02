@@ -101,9 +101,19 @@ us <- read.csv("covid-19-data/us.csv")
 
 # Setup states and specifically NJ
 states <- read.csv("covid-19-data/us-states.csv")
+state_population <- read.csv("nst-est2019-alldata.csv")
+state_population <- state_population %>% 
+	select(NAME, STATE, POPESTIMATE2019) %>%
+	rename(name=NAME, state_fips=STATE, pop=POPESTIMATE2019)
 
 # Setup counties, specifically Morris county NJ
 counties <- read.csv("covid-19-data/us-counties.csv") 
+county_population <- read.csv("co-est2019-alldata.csv")
+county_population <- county_population %>%
+	select(STATE,COUNTY,STNAME,CTYNAME,POPESTIMATE2019) %>%
+	rename(state_fips=STATE, county_fips=COUNTY, state_name=STNAME, county_name=CTYNAME, pop=POPESTIMATE2019)
+
+
 
 pdf("output/covid_nj.pdf", width = 11, height=8.5)
 
