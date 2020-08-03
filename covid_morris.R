@@ -12,10 +12,10 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	data_frame <- data_frame %>% mutate(delta2_cases = delta_cases - lag(delta_cases))
 	data_frame <- data_frame %>% mutate(delta_deaths = deaths - lag(deaths))
 	data_frame <- data_frame %>% mutate(delta2_deaths = delta_deaths - lag(delta_deaths))
-	data_frame$mean7_delta_cases <- floor(rollmeanr(data_frame$delta_cases, 7, fill=NA))
-	data_frame$mean7_delta_deaths <- floor(rollmeanr(data_frame$delta_deaths, 7, fill=NA))
-	data_frame$mean7_delta2_cases <- floor(rollmeanr(data_frame$delta2_cases, 7, fill=NA))
-	data_frame$mean7_delta2_deaths <- floor(rollmeanr(data_frame$delta2_deaths, 7, fill=NA))
+	data_frame$mean7_delta_cases <- (rollmeanr(data_frame$delta_cases, 7, fill=NA))
+	data_frame$mean7_delta_deaths <- (rollmeanr(data_frame$delta_deaths, 7, fill=NA))
+	data_frame$mean7_delta2_cases <- (rollmeanr(data_frame$delta2_cases, 7, fill=NA))
+	data_frame$mean7_delta2_deaths <- (rollmeanr(data_frame$delta2_deaths, 7, fill=NA))
 
 	if (num_days > 0) {
 		data_frame <- data_frame %>% filter(date_p >= today()-days(num_days))
@@ -27,7 +27,7 @@ graph_covid <- function(data_frame, title, num_days=0) {
 		geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
 		scale_linetype("")+
-		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%.0f",data_frame$mean7_delta_cases[n]))+
+		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, adj=0, label=sprintf("%.1f",data_frame$mean7_delta_cases[n]))+
 		labs(title=paste(title, "Cases / Day"))+
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
@@ -40,7 +40,7 @@ graph_covid <- function(data_frame, title, num_days=0) {
 		geom_bar(stat="identity", aes(y=delta_deaths), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_deaths, lty="7 day average"), color="red", size=2)+
 		scale_linetype("")+
-		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_deaths[n], size=5, label=sprintf("%.0f",data_frame$mean7_delta_deaths[n]))+
+		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_deaths[n], adj=0, size=5, label=sprintf("%.1f",data_frame$mean7_delta_deaths[n]))+
 		labs(title=paste(title, "Deaths / Day"))+
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
@@ -96,10 +96,9 @@ graph_states <- function(data_frame, in_title) {
 	)             
 }
 
-graph_states_100k <- function(data_frame, in_title) {
+graph_states_100k <- function(data_frame, in_title, num_days=0, hline=0) {
 	data_frame$date_p <- as.POSIXct(data_frame$date)
 	n <- 100000
-	l <- length(data_frame$date_p)
 
 	state <- data_frame %>%
 		arrange(state,date_p) %>%
@@ -107,18 +106,32 @@ graph_states_100k <- function(data_frame, in_title) {
 		mutate(delta_cases = (cases - lag(cases)) / (pop/n)) %>%
 		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
 		mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA))
-		
-	print(ggplot(state, aes(x=date_p))+
+
+    if (num_days > 0) {
+		data_frame <- data_frame %>% filter(date_p >= today()-days(num_days))
+	}
+ 
+
+	l <- length(data_frame$date_p)
+
+	g <- (ggplot(state, aes(x=date_p))+
 			geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
-			geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
+			geom_line(stat="identity",aes(y=mean7_delta_cases), color="blue", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_cases[n]))+
 			facet_wrap(~state)+
 			scale_linetype("")+
 			labs(title=in_title)+
+			labs(subtitle = "Horizontal Line is NJ 7 Day Mean baseline")+
 			labs(x="Date")+
 			labs(caption="Data from NY Times")+
-			labs(y="Cases/Day")
+			labs(y="Cases/Day per 100K population")
 	)             
+
+	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
+
+	if (hline >0 ) { g <- g + geom_hline(yintercept=hline) }
+
+	print(g)	
 }
   
 # Setup states and specifically NJ
@@ -154,18 +167,22 @@ theme_update(plot.subtitle = element_text(hjust = 0.5))
 theme_update(legend.position = c(0.1, 0.9))
 
 # NJ Graphs
-graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 30)
+graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
 graph_counties_for_state(counties, "New Jersey")
 
-graph_states(states %>% filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
-			 "Cases / Day for Neighboring States plus NJ")
+x <- states %>%
+	filter(state=="New Jersey") %>%
+	arrange(state,date_p) %>%
+	group_by(state) %>%
+	mutate(delta_cases = (cases - lag(cases)) / (pop/100000)) %>%
+	mutate(delta_deaths = (deaths - lag(deaths)) / (pop/100000) ) %>%
+	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA))
+ 
+nj_cases <- x$mean7_delta_cases[length(x$mean7_delta_cases)]
 
-graph_states_100k(states %>%
-				filter(date_p >= today()-days(30)) %>%
-				filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
-			 "Cases per 100K / Day for last 30 days for Neighboring States plus NJ")
-
+graph_states_100k(states %>% filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
+			 "Cases per 100K / Day for Neighboring States plus NJ", hline=nj_cases)
 
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 30)
@@ -177,10 +194,9 @@ dev.off()
 pdf("output/covid_all_states.pdf", width = 11, height=8.5)
 graph_covid(us, "United States")
 
-graph_states_100k(states %>%
-				filter(date_p >= today()-days(30))
-			 ,"Cases per 100K / Day for last 30 days for All States")
- for (st in levels(states$state)) {
+graph_states_100k(states, "Cases per 100K / Day for All States", 30, hline=nj_cases)
+
+for (st in levels(states$state)) {
 	graph_covid(states %>% filter(state == st), st)
 }
 dev.off()
