@@ -116,7 +116,7 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline=0) {
 
 	g <- (ggplot(state, aes(x=date_p))+
 			geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
-			geom_line(stat="identity",aes(y=mean7_delta_cases), color="blue", size=2)+
+			#geom_line(stat="identity",aes(y=mean7_delta_cases), color="blue", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_cases[n]))+
 			facet_wrap(~state)+
 			scale_linetype("")+
