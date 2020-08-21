@@ -51,7 +51,7 @@ graph_covid <- function(data_frame, title, num_days=0) {
 
  }
 
-graph_counties_for_state <- function(data_frame, in_state) {
+graph_counties_for_state <- function(data_frame, in_state, num_days=0) {
 	data_frame$date_p <- as.POSIXct(data_frame$date)
 	state <- data_frame %>%
 		filter(state == in_state) %>%
@@ -63,7 +63,11 @@ graph_counties_for_state <- function(data_frame, in_state) {
 		mutate(mean7_delta_cases = floor(rollmeanr(delta_cases, 7, fill=NA))) %>%
 		mutate(mean7_delta_deaths = floor(rollmeanr(delta_deaths, 7, fill=NA)))
 
-	print(ggplot(state, aes(x=date_p))+
+	if (num_days > 0) {
+		state <- state %>% filter(date_p >= today()-days(num_days))
+	}
+
+	g <- (ggplot(state, aes(x=date_p))+
 			geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
 			facet_wrap(~county)+
 			scale_linetype("")+
@@ -72,6 +76,9 @@ graph_counties_for_state <- function(data_frame, in_state) {
 			labs(caption="Data from NY Times")+
 			labs(y="Cases/Day")
 	)             
+
+	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
+	print(g)
 }
 
 graph_states <- function(data_frame, in_title) {
@@ -207,7 +214,7 @@ theme_update(legend.position = c(0.1, 0.9))
 # NJ Graphs
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 30)
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
-graph_counties_for_state(counties, "New Jersey")
+graph_counties_for_state(counties, "New Jersey", 30)
 
 x <- states %>%
 	filter(state=="New Jersey") %>%
