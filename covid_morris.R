@@ -254,3 +254,41 @@ for (st in levels(states$state)) {
 	graph_covid(states %>% filter(state == st), st)
 }
 dev.off()
+x <- us %>%
+	mutate(date_p = as.POSIXct(date)) %>%
+	mutate(name = "US") %>%
+	arrange(date_p) %>%
+	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA)) %>%
+	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
+	select(name, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
+
+print(tail(x,14))
+ 
+
+x <- states %>%
+	mutate(date_p = as.POSIXct(date)) %>%
+	filter(state=="New Jersey") %>%
+	arrange(state,date_p) %>%
+	group_by(state) %>%
+	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA)) %>%
+	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
+	select(state, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
+
+print(tail(x,14))
+
+x <- counties %>%
+	mutate(date_p = as.POSIXct(date)) %>%
+	filter(county == "Morris" & state == "New Jersey") %>%
+ 	arrange(state,county,date_p) %>%
+	group_by(county) %>%
+	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA)) %>%
+	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
+	select(county, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
+ 
+print(tail(x,14))
