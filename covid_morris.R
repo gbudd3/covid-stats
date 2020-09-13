@@ -103,7 +103,7 @@ graph_states <- function(data_frame, in_title) {
 	)             
 }
 
-graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline=0) {
+graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline_nj=0, hline_us=0) {
 	data_frame$date_p <- as.POSIXct(data_frame$date)
 	n <- 100000
 
@@ -138,12 +138,13 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline=0) {
 
 	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
 
-	if (hline >0 ) { g <- g + geom_hline(yintercept=hline) }
+	if (hline_nj >0 ) { g <- g + geom_hline(yintercept=hline_nj) }
+	if (hline_us >0 ) { g <- g + geom_hline(yintercept=hline_us) }
 
 	print(g)	
 }
 
-graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline=0) {
+graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline_nj=0, hline_us=0) {
 	data_frame$date_p <- as.POSIXct(data_frame$date)
 	n <- 100000
 
@@ -169,7 +170,7 @@ graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline=0) 
 			facet_wrap(~state)+
 			scale_linetype("")+
 			labs(title=in_title)+
-			labs(subtitle = "Horizontal Line is NJ 7 Day Mean baseline")+
+			labs(subtitle = "Horizontal Lines are NJ/US 7 Day Mean baseline")+
 			labs(x="Date")+
 			labs(caption="Data from NY Times")+
 			labs(y="Deaths/Day per 100K population")
@@ -177,13 +178,15 @@ graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline=0) 
 
 	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
 
-	if (hline >0 ) { g <- g + geom_hline(yintercept=hline) }
+	if (hline_nj >0 ) { g <- g + geom_hline(yintercept=hline_nj) }
+	if (hline_us >0 ) { g <- g + geom_hline(yintercept=hline_us) }
 
 	print(g)	
 }
    
 # Setup states and specifically NJ
 us <- read.csv("covid-19-data/us.csv")
+us$date_p <- as.POSIXct(us$date)
 
 # Setup states and specifically NJ
 states <- read.csv("covid-19-data/us-states.csv")
@@ -231,11 +234,24 @@ x <- states %>%
 nj_cases <- x$mean7_delta_cases[length(x$mean7_delta_cases)]
 nj_deaths <- x$mean7_delta_deaths[length(x$mean7_delta_deaths)]
 
+us_pop <-  state_population %>% filter(name=="United States") %>% select(pop)
+
+x <- us %>%
+	arrange(date_p) %>%
+	mutate(delta_cases = (cases - lag(cases)) / (us_pop$pop/100000)) %>%
+	mutate(delta_deaths = (deaths - lag(deaths)) / (us_pop$pop/100000) ) %>%
+	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA)) %>%
+	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA))
+ 
+us_cases <- x$mean7_delta_cases[length(x$mean7_delta_cases)]
+us_deaths <- x$mean7_delta_deaths[length(x$mean7_delta_deaths)]
+
+
 graph_states_cases_100k(states %>% filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
-			 "Cases per 100K / Day for Neighboring States plus NJ", hline=nj_cases)
+			 "Cases per 100K / Day for Neighboring States plus NJ", hline_nj=nj_cases)
 
 graph_states_deaths_100k(states %>% filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
-			 "Deaths per 100K / Day for Neighboring States plus NJ", 30, hline=nj_deaths)
+			 "Deaths per 100K / Day for Neighboring States plus NJ", 30, hline_nj=nj_deaths)
 
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 30)
@@ -247,13 +263,16 @@ dev.off()
 pdf("output/covid_all_states.pdf", width = 11, height=8.5)
 graph_covid(us, "United States")
 
-graph_states_cases_100k(states, "Cases per 100K / Day for All States", 30, hline=nj_cases)
-graph_states_deaths_100k(states, "Deaths per 100K / Day for All States", 30, hline=nj_deaths)
+graph_states_cases_100k(states, "Cases per 100K / Day for All States", 30, hline_nj=nj_cases, hline_us=us_cases)
+graph_states_deaths_100k(states, "Deaths per 100K / Day for All States", 30, hline_nj=nj_deaths, hline_us=us_deaths)
 
 for (st in levels(states$state)) {
 	graph_covid(states %>% filter(state == st), st)
 }
 dev.off()
+
+options(tibble.width=120)
+options(width=120)
 x <- us %>%
 	mutate(date_p = as.POSIXct(date)) %>%
 	mutate(name = "US") %>%
@@ -264,7 +283,7 @@ x <- us %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(name, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
 
-print(tail(x,14))
+print(tail(x,14), width=120)
  
 
 x <- states %>%
@@ -278,7 +297,7 @@ x <- states %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(state, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
 
-print(tail(x,14))
+print(tail(x,14), width=120)
 
 x <- counties %>%
 	mutate(date_p = as.POSIXct(date)) %>%
@@ -291,4 +310,4 @@ x <- counties %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(county, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
  
-print(tail(x,14))
+print(tail(x,14), width=120)
