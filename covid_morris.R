@@ -114,6 +114,7 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline_nj=0
 		mutate(delta_cases_pos = ifelse(delta_cases > 0, delta_cases, 0)) %>%
 		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
 		mutate(delta_deaths_pos = ifelse(delta_deaths > 0, delta_deaths, 0)) %>%
+		filter(delta_cases < lag(delta_cases) * 10 & delta_cases < lead(delta_cases) * 10) %>%
 		mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA))
 
     if (num_days > 0) {
@@ -154,6 +155,7 @@ graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline_nj=
 		mutate(delta_cases = (cases - lag(cases)) / (pop/n)) %>%
 		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
 		filter(delta_cases > 0 & delta_deaths > 0) %>%
+		filter(delta_deaths < lag(delta_deaths) * 10 & delta_deaths < lead(delta_deaths) * 10) %>%
 		mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA))
 
     if (num_days > 0) {
