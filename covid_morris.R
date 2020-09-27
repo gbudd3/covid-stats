@@ -131,7 +131,7 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline_nj=0
 			facet_wrap(~state)+
 			scale_linetype("")+
 			labs(title=in_title)+
-			labs(subtitle = "Horizontal Line is NJ 7 Day Mean baseline")+
+			labs(subtitle = "Horizontal Line is NJ/US 7 Day Mean baseline")+
 			labs(x="Date")+
 			labs(caption="Data from NY Times")+
 			labs(y="Cases/Day per 100K population")
@@ -259,6 +259,15 @@ graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Mo
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 30)
 
 dev.off()
+
+# Firemon States
+pdf("output/covid_firemon_states.pdf", width = 11, height=8.5)
+graph_states_cases_100k(states %>% filter(state=="Kansas" | state=="New Jersey" | state=="Missouri" | state=="Texas"),
+			 "Cases per 100K / Day for Firemon States", hline_us=us_cases)
+
+graph_states_deaths_100k(states %>% filter(state=="Kansas" | state=="New Jersey" | state=="Missouri" | state=="Texas"),
+			 "Deaths per 100K / Day for Firemon States", hline_us=us_deaths)
+ dev.off()
 
 # Other states for comparison
 
