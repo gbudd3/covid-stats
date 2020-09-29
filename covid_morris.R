@@ -322,3 +322,26 @@ x <- counties %>%
 	select(county, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
  
 print(tail(x,14), width=120)
+
+x <- states %>%
+	arrange(state,date_p) %>%
+	group_by(state) %>%
+	filter(row_number() == n()) %>%
+	mutate(cases_100k = cases / (pop / 100000)) %>%
+	mutate(deaths_100k = deaths / (pop / 100000)) %>%
+	arrange(desc(deaths_100k)) %>%
+	select(name,cases, deaths, cases_100k, deaths_100k)
+print(x, n=20, width = 120)
+
+x <- states %>%
+	arrange(state,date_p) %>%
+	group_by(state) %>%
+	mutate(cases_100k = cases / (pop / 100000)) %>%
+	mutate(deaths_100k = deaths / (pop / 100000)) %>%
+	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(cases_100k = rollmeanr(delta_cases, 30, fill=NA) / ( pop / 100000)) %>%
+	mutate(deaths_100k = rollmeanr(delta_deaths, 30, fill=NA) / ( pop / 100000)) %>%
+	select(name,cases, deaths, cases_100k, deaths_100k)
+print(x %>% filter(row_number() == n()) %>% arrange(desc(mean30_deaths)), n=100, width = 120)
+  
