@@ -114,19 +114,20 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline_nj=0
 		mutate(delta_cases_pos = ifelse(delta_cases > 0, delta_cases, 0)) %>%
 		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
 		mutate(delta_deaths_pos = ifelse(delta_deaths > 0, delta_deaths, 0)) %>%
-		filter(delta_cases < lag(delta_cases) * 10 & delta_cases < lead(delta_cases) * 10) %>%
 		mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA))
+
 
     if (num_days > 0) {
 		state <- state %>% filter(date_p >= today()-days(num_days))
 	}
  
+	state_filtered <- state %>% filter(delta_cases < lag(delta_cases) * 10 & delta_cases < lead(delta_cases) * 10)
 
 	l <- length(data_frame$date_p)
 
 	g <- (ggplot(state, aes(x=date_p))+
-			geom_bar(stat="identity", aes(y=delta_cases_pos), color="blue", fill="white")+
-			#geom_line(stat="identity",aes(y=mean7_delta_cases), color="blue", size=2)+
+			geom_bar(data=state_filtered, stat="identity", aes(y=delta_cases_pos), color="steelblue", fill="white")+
+			geom_line(stat="identity",aes(y=mean7_delta_cases), color="blue", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_cases[n]))+
 			facet_wrap(~state)+
 			scale_linetype("")+
@@ -155,19 +156,19 @@ graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline_nj=
 		mutate(delta_cases = (cases - lag(cases)) / (pop/n)) %>%
 		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
 		filter(delta_cases > 0 & delta_deaths > 0) %>%
-		filter(delta_deaths < lag(delta_deaths) * 10 & delta_deaths < lead(delta_deaths) * 10) %>%
 		mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA))
 
     if (num_days > 0) {
 		state <- state %>% filter(date_p >= today()-days(num_days))
 	}
  
+	state_filtered <- state %>% filter(delta_deaths < lag(delta_deaths) * 10 & delta_deaths < lead(delta_deaths) * 10)
 
 	l <- length(data_frame$date_p)
 
 	g <- (ggplot(state, aes(x=date_p))+
-			geom_bar(stat="identity", aes(y=delta_deaths), color="red", fill="white")+
-			#geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
+			geom_bar(data=state_filtered, stat="identity", aes(y=delta_deaths), color="indianred", fill="white")+
+			geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_deaths[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_deaths[n]))+
 			facet_wrap(~state)+
 			scale_linetype("")+
@@ -220,7 +221,7 @@ theme_update(plot.subtitle = element_text(hjust = 0.5))
 theme_update(legend.position = c(0.1, 0.9))
 
 # NJ Graphs
-graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 30)
+graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 90)
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
 graph_counties_for_state(counties, "New Jersey", 30)
 
@@ -274,8 +275,8 @@ graph_states_deaths_100k(states %>% filter(state=="Kansas" | state=="New Jersey"
 pdf("output/covid_all_states.pdf", width = 11, height=8.5)
 graph_covid(us, "United States")
 
-graph_states_cases_100k(states, "Cases per 100K / Day for All States", 30, hline_nj=nj_cases, hline_us=us_cases)
-graph_states_deaths_100k(states, "Deaths per 100K / Day for All States", 30, hline_nj=nj_deaths, hline_us=us_deaths)
+graph_states_cases_100k(states, "Cases per 100K / Day for All States", 30, hline_us=us_cases)
+graph_states_deaths_100k(states, "Deaths per 100K / Day for All States", 30, hline_us=us_deaths)
 
 for (st in levels(states$state)) {
 	graph_covid(states %>% filter(state == st), st)
@@ -342,6 +343,8 @@ x <- states %>%
 	mutate(delta_deaths = (deaths - lag(deaths))) %>%
 	mutate(cases_100k = rollmeanr(delta_cases, 30, fill=NA) / ( pop / 100000)) %>%
 	mutate(deaths_100k = rollmeanr(delta_deaths, 30, fill=NA) / ( pop / 100000)) %>%
-	select(name,cases, deaths, cases_100k, deaths_100k)
-print(x %>% filter(row_number() == n()) %>% arrange(desc(mean30_deaths)), n=100, width = 120)
+	mutate(fr_pct_100k = ( deaths_100k / cases_100k ) * 100 ) %>%
+	mutate(fr_pct = ( deaths / cases ) * 100 ) %>%
+	select(name,state, cases, deaths, fr_pct, cases_100k, deaths_100k, fr_pct_100k)
+print(x %>% filter(row_number() == n()) %>% arrange(desc(deaths_100k)), n=100, width = 120)
   
