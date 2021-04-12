@@ -22,9 +22,11 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	}
 
 	n <- length(data_frame$date_p)
+
+	df_filtered <- data_frame %>% filter(delta_cases < lag(delta_cases) * 10 & delta_cases < lead(delta_cases) * 10)
  
 	g <- ggplot(data_frame, aes(x=date_p))+
-		geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
+		geom_bar(data=df_filtered, stat="identity", aes(y=delta_cases), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
 		scale_linetype("")+
 		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, adj=0, label=sprintf("%.1f",data_frame$mean7_delta_cases[n]))+
@@ -36,8 +38,10 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
 	print(g)
 
+	df_filtered <- data_frame %>% filter(delta_deaths < lag(delta_deaths) * 10 & delta_deaths < lead(delta_deaths) * 10)
+
 	g <- ggplot(data_frame, aes(x=date_p))+
-		geom_bar(stat="identity", aes(y=delta_deaths), color="blue", fill="white")+
+		geom_bar(data=df_filtered, stat="identity", aes(y=delta_deaths), color="blue", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_deaths, lty="7 day average"), color="red", size=2)+
 		scale_linetype("")+
 		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_deaths[n], adj=0, size=5, label=sprintf("%.1f",data_frame$mean7_delta_deaths[n]))+
@@ -295,7 +299,8 @@ x <- us %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(name, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
 
-print(tail(x,14), width=120)
+print("US 15 Days")
+print(tail(x,15), width=120)
  
 
 x <- states %>%
@@ -309,7 +314,8 @@ x <- states %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(state, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
 
-print(tail(x,14), width=120)
+print("NJ 15 Days")
+print(tail(x,15), width=120)
 
 x <- counties %>%
 	mutate(date_p = as.POSIXct(date)) %>%
@@ -322,7 +328,8 @@ x <- counties %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(county, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
  
-print(tail(x,14), width=120)
+print("Morris 15 Days")
+print(tail(x,15), width=120)
 
 x <- states %>%
 	arrange(state,date_p) %>%
@@ -332,6 +339,7 @@ x <- states %>%
 	mutate(deaths_100k = deaths / (pop / 100000)) %>%
 	arrange(desc(deaths_100k)) %>%
 	select(name,cases, deaths, cases_100k, deaths_100k)
+print("Top 20 States deaths/100k")
 print(x, n=20, width = 120)
 
 x <- states %>%
@@ -346,5 +354,23 @@ x <- states %>%
 	mutate(fr_pct_100k = ( deaths_100k / cases_100k ) * 100 ) %>%
 	mutate(fr_pct = ( deaths / cases ) * 100 ) %>%
 	select(name,state, cases, deaths, fr_pct, cases_100k, deaths_100k, fr_pct_100k)
+
+print("States by deaths/100k over last 30 days")
+print(x %>% filter(row_number() == n()) %>% arrange(desc(deaths_100k)), n=100, width = 120)
+
+x <- states %>%
+	arrange(state,date_p) %>%
+	group_by(state) %>%
+	mutate(cases_100k = cases / (pop / 100000)) %>%
+	mutate(deaths_100k = deaths / (pop / 100000)) %>%
+	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(cases_100k = rollmeanr(delta_cases, 7, fill=NA) / ( pop / 100000)) %>%
+	mutate(deaths_100k = rollmeanr(delta_deaths, 7, fill=NA) / ( pop / 100000)) %>%
+	mutate(fr_pct_100k = ( deaths_100k / cases_100k ) * 100 ) %>%
+	mutate(fr_pct = ( deaths / cases ) * 100 ) %>%
+	select(name,state, cases, deaths, fr_pct, cases_100k, deaths_100k, fr_pct_100k)
+
+print("States by deaths/100k over last 7 days")
 print(x %>% filter(row_number() == n()) %>% arrange(desc(deaths_100k)), n=100, width = 120)
   
