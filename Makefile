@@ -10,6 +10,7 @@ output:
 
 output/covid_nj.pdf: covid-19-data/us-states.csv
 	Rscript covid_morris.R | tee output/covid_nj.txt
+	Rscript vaccine.R
 
 
 covid-19-data:
