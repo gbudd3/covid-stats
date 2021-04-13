@@ -23,6 +23,7 @@ g <- ggplot(d, aes(x = date_p)) +
 print(g)
 
 max_pct <- max(d$people_vaccinated_per_hundred, na.rm = TRUE)
+max_million <- max(d$daily_vaccinations_per_million, na.rm = TRUE)
 
 v <- vaccine %>% filter(date_p >= today()-days(30)) 
 
@@ -32,6 +33,14 @@ g <- ggplot(v, aes(x = date_p)) +
     geom_hline(yintercept = max_pct) +
     facet_wrap(~location) +
     labs(title = "Vaccination Percent by State")
+
+print(g)
+
+g <- ggplot(v, aes(x = date_p)) +
+    geom_bar(stat = "identity", aes(y = daily_vaccinations_per_million)) +
+    geom_hline(yintercept = max_million) +
+    facet_wrap(~location) +
+    labs(title = "Vaccinations Per Day (per Million)")
 
 print(g)
 dev.off()
