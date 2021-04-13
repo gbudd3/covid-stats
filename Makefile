@@ -1,8 +1,9 @@
 all: update output output/covid_nj.pdf
 
-update: covid-19-data owid/us_state_vaccinations.csv
+update: covid-19-data owid/us_state_vaccinations.csv owid/covid-testing-all-observations.csv
 	( cd covid-19-data; git pull -v )
 	( curl --output owid/us_state_vaccinations.csv https://covid.ourworldindata.org/data/vaccinations/us_state_vaccinations.csv )
+	( curl --output owid/covid-testing-all-observations.csv https://healthdata.gov/api/views/j8mb-icvb/rows.csv?accessType=DOWNLOAD )
 
 output:
 	mkdir output
