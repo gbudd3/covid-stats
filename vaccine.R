@@ -18,8 +18,18 @@ d <- vaccine %>% filter(location == "New Jersey")
 g <- ggplot(d, aes(x = date_p)) +
     geom_line(stat = "identity", aes(y = people_fully_vaccinated_per_hundred), color = "green", size = 2) +
     geom_line(stat = "identity", aes(y = people_vaccinated_per_hundred), color = "blue", size = 2) +
+    theme(panel.grid.major = element_line(color = "black", size = 0.1)) +
     labs(title = "NJ Vaccination Percent")
 
+print(g)
+
+d<- vaccine %>% filter(location=="New Jersey" | location == "Kansas" | location == "Texas" | location == "Missouri")
+g <- ggplot(d, aes(x = date_p)) +
+    geom_line(stat = "identity", aes(y = people_fully_vaccinated_per_hundred), color = "green", size = 2) +
+    geom_line(stat = "identity", aes(y = people_vaccinated_per_hundred), color = "blue", size = 2) +
+    facet_wrap(~location) +
+    theme(panel.grid.major = element_line(color = "black", size = 0.1)) +
+    labs(title = "Firemon States Vaccination Percent")
 print(g)
 
 max_pct <- max(d$people_vaccinated_per_hundred, na.rm = TRUE)
