@@ -54,3 +54,10 @@ g <- ggplot(v, aes(x = date_p)) +
 
 print(g)
 dev.off()
+
+print(vaccine %>%
+    filter(date_p >= today()-days(30)) %>%
+    group_by(location) %>%
+    summarize( fully_vaccinated_pct = max(people_fully_vaccinated_per_hundred), vaccinated_pct = max(people_vaccinated_per_hundred)) %>%
+    arrange(desc(vaccinated_pct))
+, n = 100) 

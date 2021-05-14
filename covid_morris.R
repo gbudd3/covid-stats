@@ -9,6 +9,7 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	data_frame$wday <- weekdays(data_frame$date_p)
 	data_frame <- data_frame %>% arrange(date_p)
 	data_frame <- data_frame %>% mutate(delta_cases = cases - lag(cases))
+	data_frame <- data_frame %>% mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0))
 	data_frame <- data_frame %>% mutate(delta2_cases = delta_cases - lag(delta_cases))
 	data_frame <- data_frame %>% mutate(delta_deaths = deaths - lag(deaths))
 	data_frame <- data_frame %>% mutate(delta2_deaths = delta_deaths - lag(delta_deaths))
@@ -63,6 +64,7 @@ graph_counties_for_state <- function(data_frame, in_state, num_days=0) {
 		arrange(county,date_p) %>%
 		group_by(county) %>%
 		mutate(delta_cases = cases - lag(cases)) %>%
+		mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 		mutate(delta_deaths = deaths - lag(deaths)) %>%
 		mutate(mean7_delta_cases = floor(rollmeanr(delta_cases, 7, fill=NA))) %>%
 		mutate(mean7_delta_deaths = floor(rollmeanr(delta_deaths, 7, fill=NA)))
@@ -91,6 +93,7 @@ graph_states <- function(data_frame, in_title) {
 		arrange(state,date_p) %>%
 		group_by(state) %>%
 		mutate(delta_cases = cases - lag(cases)) %>%
+		mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 		mutate(delta_deaths = deaths - lag(deaths)) %>%
 		mutate(mean7_delta_cases = floor(rollmeanr(delta_cases, 7, fill=NA))) %>%
 		mutate(mean7_delta_deaths = floor(rollmeanr(delta_deaths, 7, fill=NA)))
@@ -115,6 +118,7 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline_nj=0
 		arrange(state,date_p) %>%
 		group_by(state) %>%
 		mutate(delta_cases = (cases - lag(cases)) / (pop/n)) %>%
+		mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 		mutate(delta_cases_pos = ifelse(delta_cases > 0, delta_cases, 0)) %>%
 		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
 		mutate(delta_deaths_pos = ifelse(delta_deaths > 0, delta_deaths, 0)) %>%
@@ -158,6 +162,7 @@ graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline_nj=
 		arrange(state,date_p) %>%
 		group_by(state) %>%
 		mutate(delta_cases = (cases - lag(cases)) / (pop/n)) %>%
+		mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 		mutate(delta_deaths = (deaths - lag(deaths)) / (pop/n) ) %>%
 		filter(delta_cases > 0 & delta_deaths > 0) %>%
 		mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA))
@@ -294,7 +299,9 @@ x <- us %>%
 	mutate(name = "US") %>%
 	arrange(date_p) %>%
 	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_cases = replace(delta_cases, which(delta_cases <0), NA)) %>%
 	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(delta_deaths = replace(delta_deaths, which(delta_deaths <0), NA)) %>%
 	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA)) %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(name, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
@@ -309,7 +316,9 @@ x <- states %>%
 	arrange(state,date_p) %>%
 	group_by(state) %>%
 	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(delta_deaths = replace(delta_deaths, which(delta_deaths <0), 0)) %>%
 	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA)) %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(state, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
@@ -323,7 +332,9 @@ x <- counties %>%
  	arrange(state,county,date_p) %>%
 	group_by(county) %>%
 	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(delta_deaths = replace(delta_deaths, which(delta_deaths <0), 0)) %>%
 	mutate(mean7_delta_cases = rollmeanr(delta_cases, 7, fill=NA)) %>%
 	mutate(mean7_delta_deaths = rollmeanr(delta_deaths, 7, fill=NA)) %>%
 	select(county, date, cases, deaths, delta_cases, delta_deaths, mean7_delta_cases, mean7_delta_deaths)
@@ -348,7 +359,9 @@ x <- states %>%
 	mutate(cases_100k = cases / (pop / 100000)) %>%
 	mutate(deaths_100k = deaths / (pop / 100000)) %>%
 	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(delta_deaths = replace(delta_deaths, which(delta_deaths <0), 0)) %>%
 	mutate(cases_100k = rollmeanr(delta_cases, 30, fill=NA) / ( pop / 100000)) %>%
 	mutate(deaths_100k = rollmeanr(delta_deaths, 30, fill=NA) / ( pop / 100000)) %>%
 	mutate(fr_pct_100k = ( deaths_100k / cases_100k ) * 100 ) %>%
@@ -364,7 +377,9 @@ x <- states %>%
 	mutate(cases_100k = cases / (pop / 100000)) %>%
 	mutate(deaths_100k = deaths / (pop / 100000)) %>%
 	mutate(delta_cases = (cases - lag(cases))) %>%
+	mutate(delta_cases = replace(delta_cases, which(delta_cases <0), 0)) %>%
 	mutate(delta_deaths = (deaths - lag(deaths))) %>%
+	mutate(delta_deaths = replace(delta_deaths, which(delta_deaths <0), 0)) %>%
 	mutate(cases_100k = rollmeanr(delta_cases, 7, fill=NA) / ( pop / 100000)) %>%
 	mutate(deaths_100k = rollmeanr(delta_deaths, 7, fill=NA) / ( pop / 100000)) %>%
 	mutate(fr_pct_100k = ( deaths_100k / cases_100k ) * 100 ) %>%
