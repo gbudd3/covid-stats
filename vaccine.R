@@ -12,6 +12,7 @@ theme_update(plot.subtitle = element_text(hjust = 0.5))
 theme_update(legend.position = c(0.1, 0.9))
 
 vaccine$date_p <- as.POSIXct(vaccine$date) 
+vaccine <- vaccine %>% group_by(location) %>% mutate(d_fullpct = people_fully_vaccinated_per_hundred - lag(people_fully_vaccinated_per_hundred), d_partpct = people_vaccinated_per_hundred  - lag(people_vaccinated_per_hundred))
 
 d <- vaccine %>% filter(location == "New Jersey")
 
@@ -54,6 +55,14 @@ g <- ggplot(v, aes(x = date_p)) +
     geom_hline(yintercept = max_million) +
     facet_wrap(~location) +
     labs(title = "Vaccinations Per Day (per Million)")
+
+print(g)
+
+g <- ggplot(d, aes(x = date_p)) +
+    geom_line(stat = "identity", aes(y = d_fullpct), color = "green", size = 2) +
+    geom_line(stat = "identity", aes(y = d_partpct), color = "blue", size = 2) +
+    facet_wrap(~location) +
+    labs(title = "Delta Percent Vaccinations Per Day")
 
 print(g)
 dev.off()
