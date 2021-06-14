@@ -39,7 +39,7 @@ print(g)
 max_pct <- max(d$people_vaccinated_per_hundred, na.rm = TRUE)
 max_million <- max(d$daily_vaccinations_per_million, na.rm = TRUE)
 
-v <- vaccine %>% filter(date_p >= today()-days(30)) 
+v <- vaccine %>% filter(date_p >= today()-days(30)) %>% filter(daily_vaccinations_per_million > 0)
 
 g <- ggplot(v, aes(x = date_p)) +
     geom_line(stat = "identity", aes(y = people_fully_vaccinated_per_hundred), color = "green", size = 2) +
@@ -62,6 +62,7 @@ print(g)
 g <- ggplot(d, aes(x = date_p)) +
     geom_line(stat = "identity", aes(y = d7_fullpct), color = "green", size = 2) +
     geom_line(stat = "identity", aes(y = d7_partpct), color = "blue", size = 2) +
+    theme(panel.grid.major = element_line(color = "black", size = 0.1)) +
     facet_wrap(~location) +
     labs(title = "Delta Percent Vaccinations Per Day")
 
