@@ -75,3 +75,8 @@ print(vaccine %>%
     summarize( fully_vaccinated_pct = max(people_fully_vaccinated_per_hundred, na.rm=TRUE), vaccinated_pct = max(people_vaccinated_per_hundred, na.rm=TRUE)) %>%
     arrange(desc(vaccinated_pct))
 , n = 100) 
+
+print(vaccine %>% filter(location=='New Jersey') %>%
+      select(date,people_vaccinated_per_hundred,people_fully_vaccinated_per_hundred) %>%
+      rename(part_vacc_pct = people_vaccinated_per_hundred, full_vacc_pct = people_fully_vaccinated_per_hundred) %>%
+      tail(8), width=120)
