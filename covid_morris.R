@@ -350,8 +350,20 @@ x <- states %>%
 	mutate(deaths_100k = deaths / (pop / 100000)) %>%
 	arrange(desc(deaths_100k)) %>%
 	select(name,cases, deaths, cases_100k, deaths_100k)
-print("Top 20 States deaths/100k")
-print(x, n=20, width = 120)
+print("States deaths/100k")
+print(x, n=60, width = 120)
+
+x <- states %>%
+	arrange(state,date_p) %>%
+	group_by(state) %>%
+	filter(row_number() == n()) %>%
+	mutate(cases_100k = cases / (pop / 100000)) %>%
+	mutate(deaths_100k = deaths / (pop / 100000)) %>%
+	arrange(desc(cases_100k)) %>%
+	select(name,cases, deaths, cases_100k, deaths_100k)
+print("States deaths/100k")
+print(x, n=60, width = 120)
+
 
 x <- states %>%
 	arrange(state,date_p) %>%
