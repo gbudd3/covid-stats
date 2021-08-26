@@ -27,7 +27,7 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	df_filtered <- data_frame %>% filter(delta_cases < lag(delta_cases) * 10 & delta_cases < lead(delta_cases) * 10)
  
 	g <- ggplot(data_frame, aes(x=date_p))+
-		geom_bar(data=df_filtered, stat="identity", aes(y=delta_cases), color="blue", fill="white")+
+		geom_bar(data=df_filtered, stat="identity", aes(y=delta_cases), color="grey", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
 		scale_linetype("")+
 		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, adj=0, label=sprintf("%.1f",data_frame$mean7_delta_cases[n]))+
@@ -42,7 +42,7 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	df_filtered <- data_frame %>% filter(delta_deaths < lag(delta_deaths) * 10 & delta_deaths < lead(delta_deaths) * 10)
 
 	g <- ggplot(data_frame, aes(x=date_p))+
-		geom_bar(data=df_filtered, stat="identity", aes(y=delta_deaths), color="blue", fill="white")+
+		geom_bar(data=df_filtered, stat="identity", aes(y=delta_deaths), color="grey", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_deaths, lty="7 day average"), color="red", size=2)+
 		scale_linetype("")+
 		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_deaths[n], adj=0, size=5, label=sprintf("%.1f",data_frame$mean7_delta_deaths[n]))+
@@ -99,7 +99,7 @@ graph_states <- function(data_frame, in_title) {
 		mutate(mean7_delta_deaths = floor(rollmeanr(delta_deaths, 7, fill=NA)))
 
 	print(ggplot(state, aes(x=date_p))+
-			geom_bar(stat="identity", aes(y=delta_cases), color="blue", fill="white")+
+			geom_bar(stat="identity", aes(y=delta_cases), color="grey", fill="white")+
 			geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
 			facet_wrap(~state)+
 			scale_linetype("")+
@@ -134,7 +134,7 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline_nj=0
 	l <- length(data_frame$date_p)
 
 	g <- (ggplot(state, aes(x=date_p))+
-			geom_bar(data=state_filtered, stat="identity", aes(y=delta_cases_pos), color="steelblue", fill="white")+
+			geom_bar(data=state_filtered, stat="identity", aes(y=delta_cases_pos), color="grey", fill="white")+
 			geom_line(stat="identity",aes(y=mean7_delta_cases), color="blue", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_cases[n]))+
 			facet_wrap(~state)+
@@ -176,7 +176,7 @@ graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline_nj=
 	l <- length(data_frame$date_p)
 
 	g <- (ggplot(state, aes(x=date_p))+
-			geom_bar(data=state_filtered, stat="identity", aes(y=delta_deaths), color="indianred", fill="white")+
+			geom_bar(data=state_filtered, stat="identity", aes(y=delta_deaths), color="grey", fill="white")+
 			geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_deaths[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_deaths[n]))+
 			facet_wrap(~state)+
