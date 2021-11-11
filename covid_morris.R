@@ -134,7 +134,7 @@ graph_states_cases_100k <- function(data_frame, in_title, num_days=0, hline_nj=0
 	l <- length(data_frame$date_p)
 
 	g <- (ggplot(state, aes(x=date_p))+
-			geom_bar(data=state_filtered, stat="identity", aes(y=delta_cases_pos), color="grey", fill="white")+
+			#geom_bar(data=state_filtered, stat="identity", aes(y=delta_cases_pos), color="grey", fill="white")+
 			geom_line(stat="identity",aes(y=mean7_delta_cases), color="blue", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_cases[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_cases[n]))+
 			facet_wrap(~state)+
@@ -176,7 +176,7 @@ graph_states_deaths_100k <- function(data_frame, in_title, num_days=0, hline_nj=
 	l <- length(data_frame$date_p)
 
 	g <- (ggplot(state, aes(x=date_p))+
-			geom_bar(data=state_filtered, stat="identity", aes(y=delta_deaths), color="grey", fill="white")+
+			#geom_bar(data=state_filtered, stat="identity", aes(y=delta_deaths), color="grey", fill="white")+
 			geom_line(stat="identity",aes(y=mean7_delta_deaths), color="red", size=2)+
 	   		annotate("text", x=data_frame$date_p[l], y=data_frame$mean7_delta_deaths[n], size=5, label=sprintf("%3.1f",data_frame$mean7_delta_deaths[n]))+
 			facet_wrap(~state)+
@@ -361,7 +361,7 @@ x <- states %>%
 	mutate(deaths_100k = deaths / (pop / 100000)) %>%
 	arrange(desc(cases_100k)) %>%
 	select(name,cases, deaths, cases_100k, deaths_100k)
-print("States deaths/100k")
+print("States cases/100k")
 print(x, n=60, width = 120)
 
 

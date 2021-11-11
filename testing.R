@@ -42,7 +42,7 @@ d <- testing %>% filter(date_p >= today()-days(30))  %>%
     group_by(state_name) %>% mutate( m7 = rollapply(positive_pct, 7, mean, fill = NA, align = "right"))
 
 g <- ggplot(d, aes(x = date_p)) +
-    geom_bar(stat = "identity", aes(y = positive_pct), color = "grey", fill = "white") +
+    #geom_bar(stat = "identity", aes(y = positive_pct), color = "grey", fill = "white") +
     geom_line(stat="identity", aes(y = m7),color = "blue", size = 2) +
     theme(panel.grid.major = element_line(color = "black", size = 0.1)) +
     facet_wrap(~state_name) +
