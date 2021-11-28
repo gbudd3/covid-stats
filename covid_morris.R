@@ -17,6 +17,11 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	data_frame$mean7_delta_deaths <- (rollmeanr(data_frame$delta_deaths, 7, fill=NA))
 	data_frame$mean7_delta2_cases <- (rollmeanr(data_frame$delta2_cases, 7, fill=NA))
 	data_frame$mean7_delta2_deaths <- (rollmeanr(data_frame$delta2_deaths, 7, fill=NA))
+	data_frame$mean7_fr <- 100 * ( data_frame$mean7_delta_deaths / lag(data_frame$mean7_delta_cases, k=8))
+	data_frame$mean7_fr_30 <- ( rollmeanr(data_frame$mean7_fr,30,fill=NA))
+	#data_frame$fr <- 100 * ( data_frame$delta_deaths / lag(data_frame$delta_cases, k=8))
+	#data_frame$mean7_fr <- (rollmeanr(data_frame$fr,7,fill=NA))
+
 
 	if (num_days > 0) {
 		data_frame <- data_frame %>% filter(date_p >= today()-days(num_days))
@@ -50,6 +55,17 @@ graph_covid <- function(data_frame, title, num_days=0) {
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
 		labs(y="Deaths/Day")
+	print(g)
+
+	g <- ggplot(data_frame, aes(x=date_p))+
+		geom_line(stat="identity",aes(y=mean7_fr, lty="7 day average"), color="red", size=2)+
+		geom_line(stat="identity",aes(y=mean7_fr_30, lty="30 day average"), color="black", size=1)+
+		scale_linetype("")+
+		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_fr[n], adj=0, size=5, label=sprintf("%.1f",data_frame$mean7_fr[n]))+
+		labs(title=paste(title, "Fatality Rate / Day"))+
+		labs(x="Date")+
+		labs(caption="Data from NY Times")+
+		labs(y="Fatality Rate / Day")
 
 	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
 	print(g)
@@ -231,8 +247,9 @@ theme_update(legend.position = c(0.1, 0.9))
 
 # NJ Graphs
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 90)
+graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 365)
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
-graph_counties_for_state(counties, "New Jersey", 30)
+graph_counties_for_state(counties, "New Jersey", 90)
 
 x <- states %>%
 	filter(state=="New Jersey") %>%
@@ -266,7 +283,7 @@ graph_states_deaths_100k(states %>% filter(state=="New York" | state=="New Jerse
 			 "Deaths per 100K / Day for Neighboring States plus NJ", 30, hline_nj=nj_deaths)
 
 graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
-graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 30)
+graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 90)
 
 dev.off()
 
@@ -400,4 +417,7 @@ x <- states %>%
 
 print("States by deaths/100k over last 7 days")
 print(x %>% filter(row_number() == n()) %>% arrange(desc(deaths_100k)), n=100, width = 120)
+
+print("States by cases/100k over last 7 days")
+print(x %>% filter(row_number() == n()) %>% arrange(desc(cases_100k)), n=100, width = 120)
   
