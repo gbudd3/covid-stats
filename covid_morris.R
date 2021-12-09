@@ -35,7 +35,8 @@ graph_covid <- function(data_frame, title, num_days=0) {
 		geom_bar(data=df_filtered, stat="identity", aes(y=delta_cases), color="grey", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_cases, lty="7 day average"), color="blue", size=2)+
 		scale_linetype("")+
-		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, adj=0, label=sprintf("%.1f",data_frame$mean7_delta_cases[n]))+
+		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_cases[n], size=5, hjust=1, vjust=0, label=sprintf("%.1f",data_frame$mean7_delta_cases[n]))+
+	    geom_hline(yintercept=data_frame$mean7_delta_cases[n]) +
 		labs(title=paste(title, "Cases / Day"))+
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
@@ -50,7 +51,8 @@ graph_covid <- function(data_frame, title, num_days=0) {
 		geom_bar(data=df_filtered, stat="identity", aes(y=delta_deaths), color="grey", fill="white")+
 		geom_line(stat="identity",aes(y=mean7_delta_deaths, lty="7 day average"), color="red", size=2)+
 		scale_linetype("")+
-		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_deaths[n], adj=0, size=5, label=sprintf("%.1f",data_frame$mean7_delta_deaths[n]))+
+		annotate("text", x=data_frame$date_p[n], y=data_frame$mean7_delta_deaths[n], hjust=1, vjust=0, size=5, label=sprintf("%.1f",data_frame$mean7_delta_deaths[n]))+
+	    geom_hline(yintercept=data_frame$mean7_delta_deaths[n]) +
 		labs(title=paste(title, "Deaths / Day"))+
 		labs(x="Date")+
 		labs(caption="Data from NY Times")+
