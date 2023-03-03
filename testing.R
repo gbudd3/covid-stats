@@ -51,10 +51,23 @@ g <- ggplot(d, aes(x = date_p)) +
 print(g)
  
 dev.off()
+options(tibble.width=120)
+options(width=120)          
 
+print("Mean positive percentage for last 30 days")
 print(testing %>%
     filter(date_p >= today()-days(30)) %>%
     group_by(state_name) %>%
     summarize( positive_pct = mean(positive_pct)) %>%
     arrange(desc(positive_pct))
 , n = 100)
+
+print("NJ positive percentage for last 14 days")
+
+d <- testing %>% filter(state_name == "New Jersey") %>%
+    group_by(state_name) %>%
+    mutate( s7p = rollapply(Positive, 7, sum, fill = NA, align = "right")) %>%
+    mutate( s7n = rollapply(Negative, 7, sum, fill = NA, align = "right")) %>%
+    mutate( s7i = rollapply(Inconclusive, 7, sum, fill = NA, align = "right")) %>%
+    mutate(m7 = 100 * ( s7p / ( s7p + s7n + s7i)))
+print(tail(d,14),n=14,width=120)

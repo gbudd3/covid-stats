@@ -15,7 +15,7 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	data_frame <- data_frame %>% mutate(delta2_deaths = delta_deaths - lag(delta_deaths))
 	data_frame$mean7_delta_cases <- (rollmeanr(data_frame$delta_cases, 7, fill=NA))
 	data_frame$mean7_delta_deaths <- (rollmeanr(data_frame$delta_deaths, 7, fill=NA))
-	data_frame$mean7_delta2_cases <- (rollmeanr(data_frame$delta2_cases, 7, fill=NA))
+	data_frame$mean7_delta2_cases <- (rollmeanr(data_frame$delta2_cases, 14, fill=NA))
 	data_frame$mean7_delta2_deaths <- (rollmeanr(data_frame$delta2_deaths, 7, fill=NA))
 	data_frame$mean7_fr <- 100 * ( data_frame$mean7_delta_deaths / lag(data_frame$mean7_delta_cases, k=8))
 	data_frame$mean7_fr_30 <- ( rollmeanr(data_frame$mean7_fr,30,fill=NA))
@@ -45,6 +45,18 @@ graph_covid <- function(data_frame, title, num_days=0) {
 	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
 	print(g)
 
+	g <- ggplot(data_frame, aes(x=date_p))+
+		geom_line(stat="identity",aes(y=mean7_delta2_cases, lty="14 day average"), color="blue", size=2)+
+		scale_linetype("")+
+		labs(title=paste(title, "Delta in Cases / Day"))+
+		labs(x="Date")+
+		labs(caption="Data from NY Times")+
+		labs(y="Delta Cases/Day")
+
+	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
+	print(g)
+
+
 	df_filtered <- data_frame %>% filter(delta_deaths < lag(delta_deaths) * 10 & delta_deaths < lead(delta_deaths) * 10)
 
 	g <- ggplot(data_frame, aes(x=date_p))+
@@ -59,6 +71,19 @@ graph_covid <- function(data_frame, title, num_days=0) {
 		labs(y="Deaths/Day")
 	print(g)
 
+	df_filtered <- data_frame %>% filter(delta2_deaths < lag(delta2_deaths) * 10 & delta2_deaths < lead(delta2_deaths) * 10)
+
+	g <- ggplot(data_frame, aes(x=date_p))+
+		geom_line(stat="identity",aes(y=mean7_delta2_deaths, lty="14 day average"), color="red", size=2)+
+		scale_linetype("")+
+		labs(title=paste(title, "Delta in Deaths / Day"))+
+		labs(x="Date")+
+		labs(caption="Data from NY Times")+
+		labs(y="Delta Cases/Day")
+
+	if (num_days >0 ) { g <- g + labs(subtitle=(sprintf("For last %d days",num_days))) }
+	print(g)
+ 
 	g <- ggplot(data_frame, aes(x=date_p))+
 		geom_line(stat="identity",aes(y=mean7_fr, lty="7 day average"), color="red", size=2)+
 		geom_line(stat="identity",aes(y=mean7_fr_30, lty="30 day average"), color="black", size=1)+
@@ -251,7 +276,7 @@ theme_update(legend.position = c(0.1, 0.9))
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 90)
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey", 365)
 graph_covid(states %>% filter(state == "New Jersey"), "New Jersey")
-graph_counties_for_state(counties, "New Jersey", 90)
+#graph_counties_for_state(counties, "New Jersey", 90)
 
 x <- states %>%
 	filter(state=="New Jersey") %>%
@@ -284,8 +309,8 @@ graph_states_cases_100k(states %>% filter(state=="New York" | state=="New Jersey
 graph_states_deaths_100k(states %>% filter(state=="New York" | state=="New Jersey" | state=="Delaware" | state=="Pennsylvania"),
 			 "Deaths per 100K / Day for Neighboring States plus NJ", 30, hline_nj=nj_deaths)
 
-graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
-graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 90)
+#graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County")
+#graph_covid(counties %>% filter(county == "Morris" & state == "New Jersey"), "Morris County", 90)
 
 dev.off()
 
@@ -306,7 +331,7 @@ graph_covid(us, "United States")
 graph_states_cases_100k(states, "Cases per 100K / Day for All States", 30, hline_us=us_cases)
 graph_states_deaths_100k(states, "Deaths per 100K / Day for All States", 30, hline_us=us_deaths)
 
-for (st in levels(states$state)) {
+for (st in levels(as.factor(states$state))) {
 	graph_covid(states %>% filter(state == st), st)
 }
 dev.off()
